@@ -1,0 +1,47 @@
+pipeline {
+  agent none
+  stages{
+    stage('checkout') {
+        steps{
+          checkout scm
+        }
+    }
+    stage('prepare') {
+      steps{
+        sh "git clean -fdx"
+      }
+    }
+    stage('Parallel Stage') {
+      parallel {
+        stage('build') {
+          agent {
+            docker { image 'python:3.12.5-alpine3.20' }
+          } 
+          steps{
+            sh 'python --version'
+          }
+        }
+        stage('compile') {
+          steps{
+            echo "nothing to compile for hello.sh..."
+          }
+        }
+      }
+    }
+    stage('test') {
+      steps{
+        sh "./test_hello.sh"
+      }
+    }
+    stage('package') {
+      steps{
+        sh "tar -cvzf hello.tar.gz hello.sh"
+      }
+    }
+    stage('publish') {
+      steps{
+        echo "uploading package..."
+      }
+    }
+  }
+}
